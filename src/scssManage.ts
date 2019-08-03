@@ -36,8 +36,6 @@ const rootStrObj = JSON.stringify(
   }
 )
 
-// 四个以 | 分割的匹配规则，分别用于匹配 }、css规则、css规则、选择器{
-// const re1 = /^\s*}|[^{}]+;(?=[^{]+?{)|[^{}]+?(?=\s*})|[^{]*{/
 // 匹配 }
 const leftRe = '^\\s*}'
 // 匹配 rule
