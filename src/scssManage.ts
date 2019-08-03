@@ -13,14 +13,15 @@ function rnIndent (n: number) {
  * @param obj 新增的 templateAst
  * @param destArr 用于递归的节点，初始调用无需传此值
  */
-function trackChildren (obj: ITemplateObj, destArr: Array<any> = []) {
+function trackChildren (obj: ITemplateObj, destArr: Array<IScssAst> = []) {
   for (let i = 0; i < obj.children.length; i++) {
-    obj.children[i].selectorNames.forEach((item: any, index: number) => {
+    obj.children[i].selectorNames.forEach((item: string, index: number) => {
       destArr.push({
         rule: '',
-        selectorNames: obj.children[i].selectorNames[index],
+        selectorNames: item,
         children: index === 0 ? trackChildren(obj.children[i]) : [],
-        rnInfo: {}
+        rnInfo: {},
+        isNew: true
       })
     })
   }
@@ -36,7 +37,17 @@ const rootStrObj = JSON.stringify(
 )
 
 // 四个以 | 分割的匹配规则，分别用于匹配 }、css规则、css规则、选择器{
-const re1 = /^\s*}|[^{}]+;(?=[^{]+?{)|[^{}]+?(?=\s*})|[^{]*{/
+// const re1 = /^\s*}|[^{}]+;(?=[^{]+?{)|[^{}]+?(?=\s*})|[^{]*{/
+// 匹配 }
+const leftRe = '^\\s*}'
+// 匹配 rule
+const ruleRe1 = '([^{}]|#{[^}]*})+;(?=[^{:]+?{)'
+// 匹配 rule
+const ruleRe2 = '([^{}]|#{[^}]*})+?(?=\\s*})'
+// 匹配 {
+const rightRe = '([^{]|(?<=#){)*{'
+// /^\s*}|([^{}]|#{[^}]*})+;(?=[^{:]+?{)|([^{}]|#{[^}]*})+?(?=\s*})|([^{]|(?<=#){)*{/
+const re1 = new RegExp(`${leftRe}|${ruleRe1}|${ruleRe2}|${rightRe}`)
 // 匹配 scss 注释
 const scssCommentRe = /^\s*\/\/[\s\S]*(?=\n)|^\s*\/\*[\s\S]*?\*\//
 let mt = null
@@ -56,7 +67,8 @@ const scssStr2Ast = (scssStr: string, root: IScssAst = JSON.parse(rootStrObj)): 
   }
   // const value = mt[0].trim()
   let value = mt[0]
-  if (value.indexOf('{') !== -1) {
+  // 包含 {，并且不是 scss 插值语句
+  if (/[^#]{/.test(value)) {
     scssStr = scssStr.slice(value.length)
     const child: IScssAst = {
       // 去掉左大括号 {
@@ -77,12 +89,17 @@ const scssStr2Ast = (scssStr: string, root: IScssAst = JSON.parse(rootStrObj)): 
       child.comment = commentMt[0]
       value = value.slice(child.comment.length)
     }
-    const selectorMt = <RegExpMatchArray>value.match(/(\s*)([\s\S]+)/)
-    child.selectorNames = selectorMt[2].slice(0, -1).trim()
+    const selectorMt = <RegExpMatchArray>value.match(/(\s*)([\s\S]*\S)(\s*){$/)
+    if (!selectorMt) {
+      console.log(value, selectorMt)
+      debugger
+    }
+    child.selectorNames = selectorMt[2]
     child.rnInfo.start = selectorMt[1]
+    child.rnInfo.startAfter = selectorMt[3]
     root.children.push(child)
     return scssStr2Ast(scssStr, child)
-  } else if (value.indexOf('}') !== -1) {
+  } else if (/^\s*}$/.test(value)) {
     // 匹配 }
     root.rnInfo.end = (value.match(/^\s*/) as RegExpMatchArray)[0]
     scssStr = scssStr.slice(value.length)
@@ -125,7 +142,10 @@ const distinctChildren = (childrenArr: Array<IScssAst>) => {
  */
 const scssAstObj2Str = (obj: IScssAst, n = -1) => {
   if (!obj) return ''
-  let scssStr = (obj.comment || '') + (obj.rnInfo.start || rnIndent(n)) + obj.selectorNames + ' {'
+  let scssStr = 
+    (obj.comment || '') +
+    (obj.isNew ? rnIndent(n) : (obj.rnInfo.start || '')) +
+    obj.selectorNames + (obj.isNew ? ' ' : obj.rnInfo.startAfter) + '{'
   if (obj.rule) {
     scssStr += (obj.rule || '')
   }
@@ -135,8 +155,7 @@ const scssAstObj2Str = (obj: IScssAst, n = -1) => {
       scssStr += scssAstObj2Str(childScssObj, n + 1)
     })
   }
-  // scssStr += (rnIndent(n) + '}')
-  scssStr += ((obj.rnInfo.end || rnIndent(n)) + '}')
+  scssStr += ((obj.isNew ? rnIndent(n) : (obj.rnInfo.end || '')) + '}')
   return scssStr
 }
 /**
@@ -151,7 +170,7 @@ const resetScss = (templateObj: ITemplateObj, scssObj: IScssAst, childIndex = 0)
   for (let i = 0; i < selectorNames.length; i++) {
     const selector = selectorNames[i]
     const matchIndex = scssObj.children
-      .findIndex(v => !v.hasMatch && (selector === v.selectorNames || (v.selectorNames.match(/^&/) && selector === v.selectorNames.slice(1))))
+      .findIndex(v => !v.hasMatch && (selector === v.selectorNames || (v.selectorNames.startsWith('&') && selector === v.selectorNames.slice(1))))
     if (matchIndex === -1) {
       // 没找到，说明 template 中新增了标签
       scssObj.children = scssObj.children.slice(0, childIndex + i).concat(
@@ -160,7 +179,8 @@ const resetScss = (templateObj: ITemplateObj, scssObj: IScssAst, childIndex = 0)
           selectorNames: selector,
           children: i == 0 ? trackChildren(templateObj) : [],
           rnInfo: {},
-          hasMatch: true
+          hasMatch: true,
+          isNew: true
         },
         scssObj.children.slice(childIndex + i)
       )

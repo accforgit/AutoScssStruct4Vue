@@ -61,13 +61,12 @@ function parseTag (tag: string) {
 /**
  * 解析template
  * @param html html字符串片段
- * @param options 额外参数
  */
 function parse (html: string) {
 	if (!html) {
 		return []
 	}
-	const tagRE = /<!\--[\s\S]*?\-->|<(?:"[^"]*"['"]*|'[^']*'['"]*|[^'">])+>/g
+	const tagRE = /<!--[\s\S]*?-->|<(?:"[^"]*"['"]*|'[^']*'['"]*|[^'">])+>/g
 	let result: Array<any> = []
 	let current: any = null
 	let level = -1

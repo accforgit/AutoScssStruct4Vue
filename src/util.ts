@@ -48,8 +48,10 @@ function updateScssFile (currentDocumentFilePath: string, scssStr: string | void
   if (!scssStr) return console.log('empty scssStr')
   if (!VARS.autoScssStruct4VueConf.scssFilePath) return noscssFilePathFn()
   writeFile(resolve(currentDocumentFilePath, VARS.autoScssStruct4VueConf.scssFilePath), scssStr, err => {
-    if (err) return console.log('写入scss错误：', err)
-    console.log('写入 scss文件成功', resolve(__dirname, VARS.autoScssStruct4VueConf.scssFilePath))
+    if (err) {
+      return vscode.window.showInformationMessage('写入scss错误：' + err.toString())
+    }
+    console.log('写入 scss文件成功', resolve(currentDocumentFilePath, VARS.autoScssStruct4VueConf.scssFilePath))
   })
 }
 /**
@@ -72,7 +74,8 @@ function generateProcess (activeDocument: vscode.TextDocument): string {
   try {
     fileStr = getScssFile(activeText, VARS.autoScssStruct4VueConf.scssFilePath ? readScssFile(activeDocument.uri.fsPath) : (void 0))
   } catch (e) {
-    console.log('getScssFile Error:', e.toString())
+    debugger
+    console.log('getScssFile Error:', e)
   }
   return fileStr
 }
@@ -81,7 +84,7 @@ function generateProcess (activeDocument: vscode.TextDocument): string {
  */
 function updateConfig (): void {
   VARS.autoScssStruct4VueConf = vscode.workspace.getConfiguration().autoScssStruct4Vue
-  console.log('config change:', vscode.workspace.getConfiguration(), VARS.autoScssStruct4VueConf)
+  console.log('config change:', VARS.autoScssStruct4VueConf)
 }
 
 export {

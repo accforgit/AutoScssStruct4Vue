@@ -12,9 +12,15 @@ export interface IScssAst {
   comment?: string,
   // 换行、缩进字符信息
   rnInfo: {
+    // 选择器字符前面的换行、缩进信息
     start?: string
+    // 选择器字符 与 { 字符之间的换行、缩进信息
+    startAfter?: string
+    // } 字符前面的换行、缩进信息
     end?: string
-  }
+  },
+  // 相比于上一次是否是新增节点
+  isNew?: boolean
 }
 
 export interface ITemplateObj {
