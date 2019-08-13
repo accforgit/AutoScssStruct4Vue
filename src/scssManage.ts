@@ -69,7 +69,6 @@ const scssStr2Ast = (scssStr: string, root: IScssAst = JSON.parse(rootStrObj)): 
   if (/[^#]{/.test(value)) {
     scssStr = scssStr.slice(value.length)
     const child: IScssAst = {
-      // 去掉左大括号 {
       selectorNames: '',
       children: [],
       rule: '',
@@ -88,10 +87,6 @@ const scssStr2Ast = (scssStr: string, root: IScssAst = JSON.parse(rootStrObj)): 
       value = value.slice(child.comment.length)
     }
     const selectorMt = <RegExpMatchArray>value.match(/(\s*)([\s\S]*\S)(\s*){$/)
-    if (!selectorMt) {
-      console.log(value, selectorMt)
-      debugger
-    }
     child.selectorNames = selectorMt[2]
     child.rnInfo.start = selectorMt[1]
     child.rnInfo.startAfter = selectorMt[3]
