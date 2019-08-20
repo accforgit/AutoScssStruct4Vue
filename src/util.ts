@@ -74,7 +74,6 @@ function generateProcess (activeDocument: vscode.TextDocument): string {
   try {
     fileStr = getScssFile(activeText, VARS.autoScssStruct4VueConf.scssFilePath ? readScssFile(activeDocument.uri.fsPath) : (void 0))
   } catch (e) {
-    debugger
     console.log('getScssFile Error:', e)
   }
   return fileStr

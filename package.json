@@ -2,7 +2,7 @@
   "name": "autoscssstruct4vue",
   "displayName": "AutoScssStruct4Vue",
   "description": "auto scss struct from template for vue",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "author": "kother@foxmail.com",
   "publisher": "KQ",
   "engines": {

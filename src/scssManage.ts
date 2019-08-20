@@ -9,6 +9,20 @@ function rnIndent (n: number) {
 }
 
 /**
+ * 补全以 & 开头的选择器名
+ * @param scssObj scssObj
+ * @param name 选择器名
+ */
+function completeSelectorName (scssObj: IScssAst, name: string = ''): string {
+  if (scssObj.selectorNames.startsWith('&')) {
+    return scssObj.parent
+      ? completeSelectorName(scssObj.parent, scssObj.selectorNames + name.replace('&', ''))
+      : (scssObj.selectorNames + name)
+  }
+  return scssObj.selectorNames + name.replace('&', '')
+}
+
+/**
  * 对比新旧 scssAst结构时，对新增的 template 标签进行递归遍历所有子元素
  * @param obj 新增的 templateAst
  * @param destArr 用于递归的节点，初始调用无需传此值
@@ -163,7 +177,7 @@ const resetScss = (templateObj: ITemplateObj, scssObj: IScssAst, childIndex = 0)
   for (let i = 0; i < selectorNames.length; i++) {
     const selector = selectorNames[i]
     const matchIndex = scssObj.children
-      .findIndex(v => !v.hasMatch && (selector === v.selectorNames || (v.selectorNames.startsWith('&') && selector === v.selectorNames.slice(1))))
+      .findIndex(v => !v.hasMatch && (selector === v.selectorNames || (v.selectorNames.startsWith('&') && (selector === completeSelectorName(v)))))
     if (matchIndex === -1) {
       // 没找到，说明 template 中新增了标签
       scssObj.children = scssObj.children.slice(0, childIndex + i).concat(
@@ -180,6 +194,7 @@ const resetScss = (templateObj: ITemplateObj, scssObj: IScssAst, childIndex = 0)
     } else {
       // 拥有多个选择器（class、id）的标签，只递归处理第一个选择器
       if (i > 0) continue
+      // 尽可能将 template 与 scss 中相同位置的元素进行对应
       scssObj.children[matchIndex].hasMatch = true
       let scssObjChild = null
       templateObj.children.forEach((obj, index) => {
