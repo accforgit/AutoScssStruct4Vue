@@ -46,8 +46,13 @@ export interface IDoc {
 }
 
 export interface IConfig {
-  // 执行方式
-  excuteMode: string
-  // scss保存路径
-  scssFilePath: string
+  autoScssStruct4VueConf: {
+    // 执行方式
+    excuteMode: string
+    // scss保存路径
+    scssFilePath: string
+  },
+  indenConf: {
+    tabSize: number
+  }
 }

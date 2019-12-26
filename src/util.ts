@@ -32,7 +32,7 @@ function excuteWhenSave (): vscode.Disposable {
 function readScssFile (currentDocumentFilePath: string): string {
   let str = ''
   try {
-    str = readFileSync(resolve(currentDocumentFilePath, VARS.autoScssStruct4VueConf.scssFilePath)).toString()
+    str = readFileSync(resolve(currentDocumentFilePath, VARS.config.autoScssStruct4VueConf.scssFilePath)).toString()
   } catch (e) {
     console.log('readScssFile Error:', e.toString())
   }
@@ -46,12 +46,12 @@ function readScssFile (currentDocumentFilePath: string): string {
  */
 function updateScssFile (currentDocumentFilePath: string, scssStr: string | void, noscssFilePathFn: Function): void {
   if (!scssStr) return console.log('empty scssStr')
-  if (!VARS.autoScssStruct4VueConf.scssFilePath) return noscssFilePathFn()
-  writeFile(resolve(currentDocumentFilePath, VARS.autoScssStruct4VueConf.scssFilePath), scssStr, err => {
+  if (!VARS.config.autoScssStruct4VueConf.scssFilePath) return noscssFilePathFn()
+  writeFile(resolve(currentDocumentFilePath, VARS.config.autoScssStruct4VueConf.scssFilePath), scssStr, err => {
     if (err) {
       return vscode.window.showInformationMessage('写入scss错误：' + err.toString())
     }
-    console.log('写入 scss文件成功', resolve(currentDocumentFilePath, VARS.autoScssStruct4VueConf.scssFilePath))
+    console.log('写入 scss文件成功', resolve(currentDocumentFilePath, VARS.config.autoScssStruct4VueConf.scssFilePath))
   })
 }
 /**
@@ -72,7 +72,7 @@ function generateProcess (activeDocument: vscode.TextDocument): string {
   }
   let fileStr = ''
   try {
-    fileStr = getScssFile(activeText, VARS.autoScssStruct4VueConf.scssFilePath ? readScssFile(activeDocument.uri.fsPath) : (void 0))
+    fileStr = getScssFile(activeText, VARS.config.autoScssStruct4VueConf.scssFilePath ? readScssFile(activeDocument.uri.fsPath) : (void 0))
   } catch (e) {
     console.log('getScssFile Error:', e)
   }
@@ -82,8 +82,12 @@ function generateProcess (activeDocument: vscode.TextDocument): string {
  * 读取 autoscssStruct4Vue扩展的配置项
  */
 function updateConfig (): void {
-  VARS.autoScssStruct4VueConf = vscode.workspace.getConfiguration().autoScssStruct4Vue
-  console.log('config change:', VARS.autoScssStruct4VueConf)
+  const config = vscode.workspace.getConfiguration()
+  console.log('config update:', VARS.config.autoScssStruct4VueConf)
+  VARS.config.autoScssStruct4VueConf = config.autoScssStruct4Vue
+  if (typeof config.editor.tabSize === 'number') {
+    VARS.config.indenConf.tabSize = config.editor.tabSize
+  }
 }
 
 export {

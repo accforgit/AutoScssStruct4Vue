@@ -11,7 +11,7 @@ export function activate(context: vscode.ExtensionContext) {
 	vscode.workspace.onDidChangeConfiguration(() => {
 		// 更新配置项变量
 		updateConfig()
-		if (VARS.autoScssStruct4VueConf.excuteMode === 'onCommand') {
+		if (VARS.config.autoScssStruct4VueConf.excuteMode === 'onCommand') {
 			// 从 onSave&onCommand 变成 onCommand
 			if (!listener) return
 			listener.dispose()
@@ -20,7 +20,7 @@ export function activate(context: vscode.ExtensionContext) {
 			listener = excuteWhenSave()
 		}
 	})
-	if (VARS.autoScssStruct4VueConf.excuteMode === 'onSave&onCommand') {
+	if (VARS.config.autoScssStruct4VueConf.excuteMode === 'onSave&onCommand') {
 		// 当文件保存时执行
 		listener = excuteWhenSave()
 	}

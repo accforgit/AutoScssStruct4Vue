@@ -1,11 +1,12 @@
 import { IScssAst, ITemplateObj } from './sfc.d'
+import VARS from './vars'
 
 /**
  * 换行 + 缩进
  * @param n 缩进的 tab 数
  */
 function rnIndent (n: number) {
-  return n <= 0 ? '\n' : ('\n' + '  '.repeat(n))
+  return n <= 0 ? '\n' : ('\n' + (' '.repeat(VARS.config.indenConf.tabSize)).repeat(n))
 }
 
 /**
